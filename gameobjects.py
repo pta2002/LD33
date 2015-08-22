@@ -1,6 +1,7 @@
 import pygame
 import constants
 import math
+import random
 
 
 class SpriteSheet(object):
@@ -60,13 +61,13 @@ class Player(pygame.sprite.Sprite):
 
     direction = "d"
 
-    current_level = 0
-
     lvl = None
 
     spritesheet = SpriteSheet("player.png")
 
     attacking = False
+    health = 20
+    lives = 3
 
     def __init__(self):
         super().__init__()
@@ -96,7 +97,7 @@ class Player(pygame.sprite.Sprite):
         image = self.spritesheet.get_image(0, 32, 32, 32)
         self.attack_u.append(image)
 
-        self.spritesheet = SpriteSheet("player.png")
+        self.spritesheet = SpriteSheet("spritesheet.png")
 
         image = self.spritesheet.get_image(0, 224, 32, 32)
         self.shoot_u.append(image)
@@ -158,13 +159,24 @@ class Player(pygame.sprite.Sprite):
             if self.attacking:
                 block.on_destroy(self)
 
+        powerups_hit = pygame.sprite.spritecollide(self, self.lvl.powerups, False)
+        for powerup in powerups_hit:
+            powerup.on_pickup(self)
+            powerup.kill()
+
         if self.attacking:
             if self.counter == 30:
                 self.attacking = False
 
-
-
         self.counter += 1
+
+        if self.health <= 0:
+            if self.lives != 0:
+                self.lives -= 1
+                self.health = 20
+                self.rect.x, self.rect.y = self.lvl.start_pos
+            else:
+                self.on_death()
 
     def change_speed(self, x, y):
         self.change_x += x
@@ -185,7 +197,10 @@ class Player(pygame.sprite.Sprite):
         self.counter = 0
 
     def on_hit(self, projectile):
-        # TODO: Death
+        if not self.health <= 0:
+            self.health -= projectile.hit_force
+
+    def on_death(self):
         pass
 
 
@@ -216,6 +231,7 @@ class Exit(Block):
 
 class Bullet(pygame.sprite.Sprite):
     spritesheet = SpriteSheet("spritesheet.png")
+    hit_force = 5
 
     def __init__(self, x, y, angle):
         super().__init__()
@@ -279,6 +295,41 @@ class Turret(Block):
         self.disabled = True
 
 
+class PowerUp(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+
+    def on_pickup(self, player):
+        pass
+
+
+class HealingPot(PowerUp):
+    spritesheet = SpriteSheet("spritesheet.png")
+
+    def __init__(self, x, y):
+        super().__init__(x, y)
+
+        self.image = self.spritesheet.get_image(256, 0, 16, 16)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def on_pickup(self, player):
+        player.health = 20
+
+
+class Heart(pygame.sprite.Sprite):
+    spritesheet = SpriteSheet("spritesheet.png")
+
+    def __init__(self, x, y):
+        super().__init__()
+
+        self.image = self.spritesheet.get_image(272, 0, 16, 16)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+
 class Level(object):
     blocks = pygame.sprite.Group()
     bg = constants.random_colour()
@@ -286,6 +337,8 @@ class Level(object):
     bullets = pygame.sprite.Group()
     entities = pygame.sprite.Group()
     turrets = pygame.sprite.Group()
+    powerups = pygame.sprite.Group()
+    start_pos = (50, 50)
 
     def __init__(self, player):
         self.player = player
@@ -308,6 +361,9 @@ class Level(object):
                     block = Turret(x*32, y*32, self.player)
                     blocks.add(block)
                     self.turrets.add(block)
+                elif level[y][x] == "H":
+                    pot = HealingPot(x*32, y*32)
+                    self.powerups.add(pot)
         return blocks
 
 
@@ -332,7 +388,7 @@ class Lvl1(Level):
             "#                       #",
             "#                       #",
             "#                       #",
-            "#                       #",
+            "#               H       #",
             "#                       #",
             "#                       #",
             "#                       #",

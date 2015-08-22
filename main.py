@@ -19,6 +19,8 @@ player.lvl = Lvl1(player)
 
 all_sprites = pygame.sprite.Group(player)
 
+hearts = pygame.sprite.Group()
+
 while not done:
 
     # Start screen
@@ -73,7 +75,18 @@ while not done:
     player.lvl.blocks.draw(display)
     player.lvl.bullets.update()
     player.lvl.bullets.draw(display)
+    player.lvl.powerups.update()
+    player.lvl.powerups.draw(display)
     all_sprites.draw(display)
+
+    for x in range(player.lives):
+        heart = Heart(x*16+10, 10)
+        hearts.add(heart)
+
+    hearts.draw(display)
+
+    for x in hearts:
+        hearts.remove(x)
 
     pygame.display.update()
     clock.tick(60)
