@@ -241,8 +241,8 @@ class Human(pygame.sprite.Sprite):
         # Load sprites
         print("Loading sprites...")
         spritesheet = SpriteSheet(self.spritesheets_idle[self.spritesheet_chosen])
-        for x in range(spritesheet.width // 32):
-            image = spritesheet.get_image(x*32, 0, 32, 32)
+        for i in range(spritesheet.width // 32):
+            image = spritesheet.get_image(i*32, 0, 32, 32)
             self.idle_u.append(image)
             self.idle_d.append(pygame.transform.flip(image, False, True))
             image = pygame.transform.rotate(image, 90)
@@ -250,8 +250,8 @@ class Human(pygame.sprite.Sprite):
             self.idle_r.append(pygame.transform.flip(image, True, False))
             self.max_anim_frame += 1
         spritesheet = SpriteSheet(self.spritesheets_move[self.spritesheet_chosen])
-        for x in range(spritesheet.width // 32):
-            image = spritesheet.get_image(x*32, 0, 32, 32)
+        for i in range(spritesheet.width // 32):
+            image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_u.append(image)
             self.walking_d.append(pygame.transform.flip(image, False, True))
             image = pygame.transform.rotate(image, 90)
@@ -331,10 +331,10 @@ class Human(pygame.sprite.Sprite):
         hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
         for block in hit:
             if self.dir == "u":
-                self.rect.bottom = block.rect.top
+                self.rect.top = block.rect.bottom
                 self.dir = "d"
             elif self.dir == "d":
-                self.rect.top = block.rect.bottom
+                self.rect.bottom = block.rect.top
                 self.dir = "u"
 
         if self.counter == 30:
@@ -547,7 +547,7 @@ class Lvl1(Level):
             "#########################",
             "#                       #",
             "#                       #",
-            "#   #### P              #",
+            "#   ####                #",
             "#                       #",
             "#                       #",
             "#                L      #",
@@ -559,7 +559,7 @@ class Lvl1(Level):
             "#                       #",
             "#               H       #",
             "#                       #",
-            "#                       #",
+            "#           P           #",
             "#                       #",
             "#                     E #",
             "#########################",
