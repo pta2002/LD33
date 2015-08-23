@@ -22,6 +22,7 @@ class SpriteSheet(object):
 class Block(pygame.sprite.Sprite):
 
     noclip = False
+    name = "block"
 
     def __init__(self, x, y):
         super().__init__()
@@ -320,20 +321,20 @@ class Human(pygame.sprite.Sprite):
         self.rect.x += self.change_x
         hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
         for block in hit:
-            if self.dir == "r":
+            if self.change_x > 0:
                 self.rect.right = block.rect.left
                 self.dir = "l"
-            elif self.dir == "l":
+            elif self.change_x < 0:
                 self.rect.left = block.rect.right
                 self.dir = "r"
 
         self.rect.y += self.change_y
         hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
         for block in hit:
-            if self.dir == "u":
+            if self.change_y < 0:
                 self.rect.top = block.rect.bottom
                 self.dir = "d"
-            elif self.dir == "d":
+            elif self.change_y > 0:
                 self.rect.bottom = block.rect.top
                 self.dir = "u"
 
@@ -345,9 +346,6 @@ class Human(pygame.sprite.Sprite):
                 self.anim_frame = 0
         self.image = self.playing_anim[self.anim_frame]
         self.counter += 1
-
-        print(self.rect.x, self.rect.y)
-
 
 
 class Wall(Block):
@@ -379,7 +377,7 @@ class Bullet(pygame.sprite.Sprite):
     spritesheet = SpriteSheet("spritesheet.png")
     hit_force = 5
 
-    def __init__(self, x, y, angle):
+    def __init__(self, x, y, angle, lvl):
         super().__init__()
 
         self.frames_lived = 0
@@ -393,6 +391,7 @@ class Bullet(pygame.sprite.Sprite):
         self.speed_mag = 8
         self.speed = (self.speed_mag * math.cos(self.angle),
                       self.speed_mag * math.sin(self.angle))
+        self.lvl = lvl
 
     def update(self):
         self.frames_lived += 1
@@ -401,6 +400,9 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.topleft = self.rect.x, self.rect.y
         if self.frames_lived == 5:
             self.image = pygame.transform.rotate(self.spritesheet.get_image(192, 0, 16, 16), self.ori_angle)
+        for block in pygame.sprite.spritecollide(self, self.lvl.blocks, False):
+            if block.name != "turret":
+                self.lvl.bullets.remove(self)
 
 
 class Turret(Block):
@@ -409,6 +411,7 @@ class Turret(Block):
     counter = 0
     barrel = spritesheet.get_image(160, 0, 32, 32)
     disabled = False
+    name = "turret"
 
     def __init__(self, x, y, player):
         super().__init__(x, y)
@@ -435,7 +438,7 @@ class Turret(Block):
                 self.shoot()
 
     def shoot(self):
-        self.player.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, self.rot))
+        self.player.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, self.rot, self.player.lvl))
 
     def on_destroy(self, player):
         self.disabled = True
@@ -543,6 +546,7 @@ class Lvl1(Level):
 
         self.num = 1
         # Level. 25x19
+
         level = [
             "#########################",
             "#                       #",
@@ -557,14 +561,13 @@ class Lvl1(Level):
             "#                       #",
             "#                       #",
             "#                       #",
-            "#               H       #",
-            "#                       #",
-            "#           P           #",
-            "#                       #",
-            "#                     E #",
+            "#         ##### H       #",
+            "#         #   #         #",
+            "#         # P #         #",
+            "#         #   #         #",
+            "#         #####       E #",
             "#########################",
         ]
-
         self.blocks = self.convert(level)
         self.player = player
 
