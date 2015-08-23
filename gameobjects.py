@@ -291,24 +291,24 @@ class Human(pygame.sprite.Sprite):
         if self.stopped:
             self.change_x = 0
             self.change_y = 0
-            if dir == "r":
+            if self.dir == "r":
                 self.playing_anim = self.idle_r
-            elif dir == "l":
+            elif self.dir == "l":
                 self.playing_anim = self.idle_l
-            elif dir == "u":
+            elif self.dir == "u":
                 self.playing_anim = self.idle_u
             else:
                 self.playing_anim = self.idle_d
         else:
-            if dir == "r":
+            if self.dir == "r":
                 self.change_x = 5
                 self.change_y = 0
                 self.playing_anim = self.walking_r
-            elif dir == "l":
+            elif self.dir == "l":
                 self.change_x = -5
                 self.change_y = 0
                 self.playing_anim = self.walking_l
-            elif dir == "u":
+            elif self.dir == "u":
                 self.change_x = 0
                 self.change_y = -5
                 self.playing_anim = self.walking_u
