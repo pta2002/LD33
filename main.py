@@ -40,7 +40,7 @@ while not done:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
-                player.dead = Falsessss
+                player.dead = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                 start_screen = True
                 player.dead = False
