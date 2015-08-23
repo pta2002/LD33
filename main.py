@@ -11,6 +11,7 @@ clock = pygame.time.Clock()
 done = False
 start_screen = True
 start_image = pygame.image.load("start.png")
+dead_image = pygame.image.load("death.png")
 bg = constants.random_colour()
 
 # Initialize variables (e.g. player)
@@ -33,6 +34,24 @@ while not done:
                 if event.key == pygame.K_RETURN:
                     start_screen = False
         display.blit(start_image, (0, 0))
+        pygame.display.update()
+
+    while player.dead:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+                player.dead = Falsessss
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                start_screen = True
+                player.dead = False
+                player.lvl = Lvl1(player)
+                player.health = 20
+                player.lives = 3
+                player.rect.x = player.lvl.start_pos[0]
+                player.rect.y = player.lvl.start_pos[1]
+                player.change_x = 0
+                player.change_y = 0
+        display.blit(dead_image, (0, 0))
         pygame.display.update()
 
     for event in pygame.event.get():
@@ -77,6 +96,8 @@ while not done:
     player.lvl.bullets.draw(display)
     player.lvl.powerups.update()
     player.lvl.powerups.draw(display)
+    player.lvl.humans.update()
+    player.lvl.humans.draw(display)
     all_sprites.draw(display)
 
     for x in range(player.lives):

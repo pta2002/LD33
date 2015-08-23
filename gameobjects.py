@@ -9,6 +9,8 @@ class SpriteSheet(object):
 
     def __init__(self, file):
         self.sprite_sheet = pygame.image.load(file)
+        self.width = self.sprite_sheet.get_rect().width
+        self.height = self.sprite_sheet.get_rect().height
 
     def get_image(self, x, y, width, height):
         image = pygame.Surface((width, height))
@@ -109,6 +111,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = 50
         self.rect.y = 50
+        self.dead = False
 
     def update(self):
 
@@ -201,7 +204,150 @@ class Player(pygame.sprite.Sprite):
             self.health -= projectile.hit_force
 
     def on_death(self):
-        pass
+        self.dead = True
+
+
+class Human(pygame.sprite.Sprite):
+    # Pick a random spritesheet. TODO: Add more spritesheets
+    spritesheets_idle = ["h1_idle.png"]
+    spritesheets_move = ["h1_move.png"]
+
+    spritesheet_chosen = random.randint(0, len(spritesheets_idle)-1)
+
+    idle_u = []
+    idle_d = []
+    idle_l = []
+    idle_r = []
+    walking_u = []
+    walking_d = []
+    walking_l = []
+    walking_r = []
+
+    # Pick a random direction
+    dir = random.choice(["r", "l", "u", "d"])
+    stopped = True
+
+    change_x = 0
+    change_y = 0
+
+    playing_anim = None
+
+    counter = 0
+    anim_frame = 0
+    max_anim_frame = 0
+
+    def __init__(self, x, y, lvl):
+        super().__init__()
+        # Load sprites
+        print("Loading sprites...")
+        spritesheet = SpriteSheet(self.spritesheets_idle[self.spritesheet_chosen])
+        for x in range(spritesheet.width // 32):
+            image = spritesheet.get_image(x*32, 0, 32, 32)
+            self.idle_u.append(image)
+            self.idle_d.append(pygame.transform.flip(image, False, True))
+            image = pygame.transform.rotate(image, 90)
+            self.idle_l.append(image)
+            self.idle_r.append(pygame.transform.flip(image, True, False))
+            self.max_anim_frame += 1
+        spritesheet = SpriteSheet(self.spritesheets_move[self.spritesheet_chosen])
+        for x in range(spritesheet.width // 32):
+            image = spritesheet.get_image(x*32, 0, 32, 32)
+            self.walking_u.append(image)
+            self.walking_d.append(pygame.transform.flip(image, False, True))
+            image = pygame.transform.rotate(image, 90)
+            self.walking_l.append(image)
+            self.walking_r.append(pygame.transform.flip(image, True, False))
+
+        # Grab the stuff and things and stuff (and things)
+        if self.dir == "u":
+            self.image = self.idle_u[0]
+            self.playing_anim = self.idle_u
+        elif self.dir == "d":
+            self.image = self.idle_d[0]
+            self.playing_anim = self.idle_d
+        elif self.dir == "l":
+            self.image = self.idle_l[0]
+            self.playing_anim = self.idle_l
+        else:
+            self.image = self.idle_r[0]
+            self.playing_anim = self.idle_r
+
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+        self.lvl = lvl
+
+    def update(self):
+        # AI
+        # 1/20 chance it will start moving/stop
+        if random.randint(0, 200) == 1:
+            self.stopped = not self.stopped
+
+        # 1/10 chance it will change direction
+        if random.randint(0, 10) == 1:
+            self.dir = random.choice(["r", "l", "d", "u"])
+
+        if self.stopped:
+            self.change_x = 0
+            self.change_y = 0
+            if dir == "r":
+                self.playing_anim = self.idle_r
+            elif dir == "l":
+                self.playing_anim = self.idle_l
+            elif dir == "u":
+                self.playing_anim = self.idle_u
+            else:
+                self.playing_anim = self.idle_d
+        else:
+            if dir == "r":
+                self.change_x = 5
+                self.change_y = 0
+                self.playing_anim = self.walking_r
+            elif dir == "l":
+                self.change_x = -5
+                self.change_y = 0
+                self.playing_anim = self.walking_l
+            elif dir == "u":
+                self.change_x = 0
+                self.change_y = -5
+                self.playing_anim = self.walking_u
+            else:
+                self.change_x = 0
+                self.change_y = 5
+                self.playing_anim = self.walking_d
+
+        self.rect.x += self.change_x
+        hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
+        for block in hit:
+            if self.dir == "r":
+                self.rect.right = block.rect.left
+                self.dir = "l"
+            elif self.dir == "l":
+                self.rect.left = block.rect.right
+                self.dir = "r"
+
+        self.rect.y += self.change_y
+        hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
+        for block in hit:
+            if self.dir == "u":
+                self.rect.top = block.rect.bottom
+                self.dir = "d"
+            elif self.dir == "d":
+                self.rect.bottom = block.rect.top
+                self.dir = "u"
+
+        if self.counter == 30:
+            self.counter = 0
+            if self.anim_frame != self.max_anim_frame-1:
+                self.anim_frame += 1
+            else:
+                self.anim_frame = 0
+        self.image = self.playing_anim[self.anim_frame]
+        self.counter += 1
+
+        print(self.rect.x, self.rect.y)
+
 
 
 class Wall(Block):
@@ -282,7 +428,7 @@ class Turret(Block):
             self.rot = 270-math.degrees(math.atan2(*offset))
             self.image = pygame.transform.rotate(self.original_image, self.rot)
             self.rect = self.image.get_rect(center=self.rect.center)
-            if self.counter != 120:
+            if self.counter != 100:
                 self.counter += 1
             else:
                 self.counter = 0
@@ -330,6 +476,22 @@ class Heart(pygame.sprite.Sprite):
         self.rect.y = y
 
 
+class ExtraLive(PowerUp):
+    spritesheet = SpriteSheet("spritesheet.png")
+
+    def __init__(self, x, y):
+        super().__init__(x, y)
+
+        self.image = self.spritesheet.get_image(272, 0, 16, 16)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def on_pickup(self, player):
+        player.lives += 1
+        player.health = 20
+
+
 class Level(object):
     blocks = pygame.sprite.Group()
     bg = constants.random_colour()
@@ -339,6 +501,7 @@ class Level(object):
     turrets = pygame.sprite.Group()
     powerups = pygame.sprite.Group()
     start_pos = (50, 50)
+    humans = pygame.sprite.Group()
 
     def __init__(self, player):
         self.player = player
@@ -364,6 +527,12 @@ class Level(object):
                 elif level[y][x] == "H":
                     pot = HealingPot(x*32, y*32)
                     self.powerups.add(pot)
+                elif level[y][x] == "L":
+                    pot = ExtraLive(x*32, y*32)
+                    self.powerups.add(pot)
+                elif level[y][x] == "P":
+                    per = Human(x*32, y*32, self)
+                    self.humans.add(per)
         return blocks
 
 
@@ -378,10 +547,10 @@ class Lvl1(Level):
             "#########################",
             "#                       #",
             "#                       #",
+            "#   #### P              #",
             "#                       #",
             "#                       #",
-            "#                       #",
-            "#                       #",
+            "#                L      #",
             "#                       #",
             "#                       #",
             "#           T           #",
