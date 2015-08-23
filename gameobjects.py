@@ -2,6 +2,22 @@ import pygame
 import constants
 import math
 import random
+import string
+
+UEIDs = []
+
+
+def gen_UEID():
+    chars = string.ascii_letters + string.digits
+    result = ""
+    for x in range(10):
+        result += random.choice(chars)
+    if result not in UEIDs:
+        UEIDs.append(result)
+        print("GENERATED UEID:", result)
+        return result
+    else:
+        return gen_UEID()
 
 
 class SpriteSheet(object):
@@ -42,10 +58,13 @@ class Block(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
+
     change_x = 0
     change_y = 0
 
     counter = 0
+
+    name = "player"
 
     walking_r = []
     walking_l = []
@@ -72,8 +91,11 @@ class Player(pygame.sprite.Sprite):
     health = 20
     lives = 3
 
+    score = 0
+
     def __init__(self):
         super().__init__()
+        self.UEID = gen_UEID()
 
         # TODO: Make walking sprites
         image = self.spritesheet.get_image(0, 64, 32, 32)
@@ -150,6 +172,15 @@ class Player(pygame.sprite.Sprite):
             if self.attacking:
                 block.on_destroy(self)
 
+        entities_hit = pygame.sprite.spritecollide(self, self.lvl.entities, False)
+        for entity in entities_hit:
+            if entity.UEID != self.UEID:
+                if self.change_x > 0:
+                    self.rect.right = entity.rect.left
+                elif self.change_x < 0:
+                    self.rect.left = entity.rect.right
+                entity.on_player_touch(self)
+
         self.rect.y += self.change_y
 
         blocks_hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
@@ -162,6 +193,15 @@ class Player(pygame.sprite.Sprite):
             block.on_player_touch(self)
             if self.attacking:
                 block.on_destroy(self)
+
+        entities_hit = pygame.sprite.spritecollide(self, self.lvl.entities, False)
+        for entity in entities_hit:
+            if entity.UEID != self.UEID:
+                if self.change_y > 0:
+                    self.rect.bottom = entity.rect.top
+                elif self.change_y < 0:
+                    self.rect.top = entity.rect.bottom
+                entity.on_player_touch(self)
 
         powerups_hit = pygame.sprite.spritecollide(self, self.lvl.powerups, False)
         for powerup in powerups_hit:
@@ -223,6 +263,7 @@ class Human(pygame.sprite.Sprite):
     walking_d = []
     walking_l = []
     walking_r = []
+    name = "human"
 
     # Pick a random direction
     dir = random.choice(["r", "l", "u", "d"])
@@ -239,6 +280,7 @@ class Human(pygame.sprite.Sprite):
 
     def __init__(self, x, y, lvl):
         super().__init__()
+        self.UEID = gen_UEID()
         # Load sprites
         print("Loading sprites...")
         spritesheet = SpriteSheet(self.spritesheets_idle[self.spritesheet_chosen])
@@ -302,6 +344,179 @@ class Human(pygame.sprite.Sprite):
                 self.playing_anim = self.idle_d
         else:
             if self.dir == "r":
+                self.change_x = 2
+                self.change_y = 0
+                self.playing_anim = self.walking_r
+            elif self.dir == "l":
+                self.change_x = -2
+                self.change_y = 0
+                self.playing_anim = self.walking_l
+            elif self.dir == "u":
+                self.change_x = 0
+                self.change_y = -2
+                self.playing_anim = self.walking_u
+            else:
+                self.change_x = 0
+                self.change_y = 2
+                self.playing_anim = self.walking_d
+
+        self.rect.x += self.change_x
+        hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
+        for block in hit:
+            if self.change_x > 0:
+                self.rect.right = block.rect.left
+                self.dir = "l"
+            elif self.change_x < 0:
+                self.rect.left = block.rect.right
+                self.dir = "r"
+
+        entities_hit = pygame.sprite.spritecollide(self, self.lvl.entities, False)
+        for entity in entities_hit:
+            if entity.UEID != self.UEID:
+                if self.change_x > 0:
+                    self.rect.right = entity.rect.left
+                    self.dir = "l"
+                elif self.change_x < 0:
+                    self.rect.top = entity.rect.bottom
+                    self.dir = "r"
+
+        self.rect.y += self.change_y
+        hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
+        for block in hit:
+            if self.change_y < 0:
+                self.rect.top = block.rect.bottom
+                self.dir = "d"
+            elif self.change_y > 0:
+                self.rect.bottom = block.rect.top
+                self.dir = "u"
+
+        entities_hit = pygame.sprite.spritecollide(self, self.lvl.entities, False)
+        for entity in entities_hit:
+            if entity.UEID != self.UEID:
+                if self.change_y > 0:
+                    self.rect.bottom = entity.rect.top
+                    self.dir = "u"
+                elif self.change_y < 0:
+                    self.rect.top = entity.rect.bottom
+                    self.dir = "d"
+
+        if self.counter == 30:
+            self.counter = 0
+            if self.anim_frame != self.max_anim_frame-1:
+                self.anim_frame += 1
+            else:
+                self.anim_frame = 0
+        self.image = self.playing_anim[self.anim_frame]
+        self.counter += 1
+
+    def on_hit(self, projectile):
+        self.rect.x += projectile.speed[0]
+        self.rect.y += projectile.speed[1]
+
+    def on_player_touch(self, player):
+        pass
+
+
+class Soldier(pygame.sprite.Sprite):
+    # Pick a random spritesheet. TODO: Add more spritesheets
+    spritesheets_idle = ["h1_idle.png"]
+    spritesheets_move = ["h1_move.png"]
+
+    spritesheet_chosen = 0
+
+    idle_u = []
+    idle_d = []
+    idle_l = []
+    idle_r = []
+    walking_u = []
+    walking_d = []
+    walking_l = []
+    walking_r = []
+    name = "soldier"
+
+    # Pick a random direction
+    dir = random.choice(["r", "l", "u", "d"])
+    stopped = True
+
+    change_x = 0
+    change_y = 0
+
+    playing_anim = None
+
+    counter = 0
+    shoot_counter = 0
+    shoot_rot = 0
+    # Less = Faster
+    shoot_rate = 5
+    anim_frame = 0
+    max_anim_frame = 0
+    mas_idle_anim_frame = 0
+
+    def __init__(self, x, y, lvl):
+        super().__init__()
+        self.UEID = gen_UEID()
+        # Load sprites
+        spritesheet_u = SpriteSheet("sprites/military_back.png")
+        spritesheet_d = SpriteSheet("sprites/military_front.png")
+        spritesheet_r = SpriteSheet("sprites/military_side.png")
+        self.idle_u.append(spritesheet_u.get_image(0, 0, 32, 32))
+        self.idle_d.append(spritesheet_d.get_image(0, 0, 32, 32))
+        self.idle_r.append(spritesheet_r.get_image(0, 0, 32, 32))
+        self.idle_l.append(pygame.transform.flip(spritesheet_r.get_image(0, 0, 32, 32), True, False))
+        for i in range(spritesheet_u.width // 32):
+            image = spritesheet_u.get_image(i*32, 0, 32, 32)
+            self.walking_u.append(image)
+            image = spritesheet_d.get_image(i*32, 0, 32, 32)
+            self.walking_d.append(image)
+            image = spritesheet_r.get_image(i*32, 0, 32, 32)
+            self.walking_r.append(image)
+            self.walking_l.append(pygame.transform.flip(image, True, False))
+            self.max_anim_frame += 1
+
+        # Grab the stuff and things and stuff (and things)
+        if self.dir == "u":
+            self.image = self.idle_u[0]
+            self.playing_anim = self.idle_u
+        elif self.dir == "d":
+            self.image = self.idle_d[0]
+            self.playing_anim = self.idle_d
+        elif self.dir == "l":
+            self.image = self.idle_l[0]
+            self.playing_anim = self.idle_l
+        else:
+            self.image = self.idle_r[0]
+            self.playing_anim = self.idle_r
+
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+        self.lvl = lvl
+        self.shooting = False
+
+    def update(self):
+        # AI
+        # 1/20 chance it will start moving/stop
+        if random.randint(0, 200) == 1:
+            self.stopped = not self.stopped
+
+        # 1/10 chance it will change direction
+        if random.randint(0, 100) == 1:
+            self.dir = random.choice(["r", "l", "d", "u"])
+
+        if self.stopped:
+            self.change_x = 0
+            self.change_y = 0
+            if self.dir == "r":
+                self.playing_anim = self.idle_r
+            elif self.dir == "l":
+                self.playing_anim = self.idle_l
+            elif self.dir == "u":
+                self.playing_anim = self.idle_u
+            else:
+                self.playing_anim = self.idle_d
+        else:
+            if self.dir == "r":
                 self.change_x = 5
                 self.change_y = 0
                 self.playing_anim = self.walking_r
@@ -328,6 +543,16 @@ class Human(pygame.sprite.Sprite):
                 self.rect.left = block.rect.right
                 self.dir = "r"
 
+        entities_hit = pygame.sprite.spritecollide(self, self.lvl.entities, False)
+        for entity in entities_hit:
+            if entity.UEID != self.UEID:
+                if self.change_x > 0:
+                    self.rect.right = entity.rect.left
+                    self.dir = "l"
+                elif self.change_x < 0:
+                    self.rect.top = entity.rect.bottom
+                    self.dir = "r"
+
         self.rect.y += self.change_y
         hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
         for block in hit:
@@ -338,14 +563,59 @@ class Human(pygame.sprite.Sprite):
                 self.rect.bottom = block.rect.top
                 self.dir = "u"
 
-        if self.counter == 30:
+        entities_hit = pygame.sprite.spritecollide(self, self.lvl.entities, False)
+        for entity in entities_hit:
+            if entity.UEID != self.UEID:
+                if self.change_y > 0:
+                    self.rect.bottom = entity.rect.top
+                    self.dir = "u"
+                elif self.change_y < 0:
+                    self.rect.top = entity.rect.bottom
+                    self.dir = "d"
+
+        if self.counter == 1:
             self.counter = 0
             if self.anim_frame != self.max_anim_frame-1:
                 self.anim_frame += 1
             else:
                 self.anim_frame = 0
-        self.image = self.playing_anim[self.anim_frame]
+
+        if self.shooting:
+            print(self.shoot_counter)
+            if self.shoot_counter == 5:
+                self.shoot(self.shoot_rot)
+                if self.shoot_rot == 90:
+                    self.dir = "r"
+                elif self.shoot_rot == 180:
+                    self.dir = "d"
+                elif self.shoot_rot == 270:
+                    self.dir = "l"
+                else:
+                    self.dir = "u"
+                self.shoot_counter = 0
+
+        if self.stopped:
+            self.image = self.playing_anim[self.mas_idle_anim_frame]
+        else:
+            self.image = self.playing_anim[self.anim_frame]
         self.counter += 1
+        if self.shooting: self.shoot_counter += 1
+
+    def on_hit(self, projectile):
+        pass
+
+    def on_player_touch(self, player):
+        self.shooting = True
+
+    def shoot(self, rot):
+        if self.dir == "u":
+            self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.top, 0, self.lvl))
+        elif self.dir == "l":
+            self.lvl.bullets.add(Bullet(self.rect.left, self.rect.centery, 90, self.lvl))
+        elif self.dir == "d":
+            self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.bottom, 180, self.lvl))
+        else:
+            self.lvl.bullets.add(Bullet(self.rect.right, self.rect.centery, 270, self.lvl))
 
 
 class Wall(Block):
@@ -536,6 +806,11 @@ class Level(object):
                 elif level[y][x] == "P":
                     per = Human(x*32, y*32, self)
                     self.humans.add(per)
+                    self.entities.add(per)
+                elif level[y][x] == "S":
+                    per = Soldier(x*32, y*32, self)
+                    self.humans.add(per)
+                    self.entities.add(per)
         return blocks
 
 
@@ -551,7 +826,7 @@ class Lvl1(Level):
             "#########################",
             "#                       #",
             "#                       #",
-            "#   ####                #",
+            "#            S          #",
             "#                       #",
             "#                       #",
             "#                L      #",
@@ -561,11 +836,11 @@ class Lvl1(Level):
             "#                       #",
             "#                       #",
             "#                       #",
-            "#         ##### H       #",
-            "#         #   #         #",
-            "#         # P #         #",
-            "#         #   #         #",
-            "#         #####       E #",
+            "#               H       #",
+            "#                       #",
+            "#           P           #",
+            "#                       #",
+            "#                     E #",
             "#########################",
         ]
         self.blocks = self.convert(level)
