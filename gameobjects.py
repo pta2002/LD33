@@ -285,7 +285,7 @@ class Human(pygame.sprite.Sprite):
             self.stopped = not self.stopped
 
         # 1/10 chance it will change direction
-        if random.randint(0, 10) == 1:
+        if random.randint(0, 100) == 1:
             self.dir = random.choice(["r", "l", "d", "u"])
 
         if self.stopped:
@@ -331,10 +331,10 @@ class Human(pygame.sprite.Sprite):
         hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
         for block in hit:
             if self.dir == "u":
-                self.rect.top = block.rect.bottom
+                self.rect.bottom = block.rect.top
                 self.dir = "d"
             elif self.dir == "d":
-                self.rect.bottom = block.rect.top
+                self.rect.top = block.rect.bottom
                 self.dir = "u"
 
         if self.counter == 30:
