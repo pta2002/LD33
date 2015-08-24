@@ -218,6 +218,21 @@ class Player(pygame.sprite.Sprite):
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.attack_r.append(image)
 
+        spritesheet = get_sprites("sprites/victory.png", alpha=True)
+        self.victory_anim = [
+            spritesheet.get_image(i * 64, 0, 64, 64)
+            for i in range(spritesheet.width // 64)
+        ]
+        self.victory_anim_count = 0
+
+        spritesheet = get_sprites("sprites/failure.png", alpha=True)
+        self.failure_anim = [
+            spritesheet.get_image(i * 64, 0, 64, 64)
+            for i in range(spritesheet.width // 32)
+        ]
+        self.failure_frame = 0
+        self.failure_frame_count = len(self.failure_anim)
+
         self.playing_anim = self.idle_d
         self.image = self.playing_anim[0]
         self.rect = self.image.get_rect()
