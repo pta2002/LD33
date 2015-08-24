@@ -91,8 +91,9 @@ while not done:
 
         hit = pygame.sprite.spritecollide(bullet, player.lvl.entities, False)
         for entity in hit:
-            entity.on_hit(bullet)
-            player.lvl.bullets.remove(bullet)
+            if entity.UEID != bullet.dont_affect:
+                entity.on_hit(bullet)
+                player.lvl.bullets.remove(bullet)
 
     all_sprites.update()
     player.lvl.draw(display)

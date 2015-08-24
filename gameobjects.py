@@ -492,7 +492,7 @@ class Soldier(pygame.sprite.Sprite):
         self.rect.y = y
 
         self.lvl = lvl
-        self.shooting = False
+        self.shooting = True
 
     def update(self):
         # AI
@@ -583,33 +583,41 @@ class Soldier(pygame.sprite.Sprite):
         if self.shooting:
             print(self.shoot_counter)
             if self.shoot_counter == 5:
+                print("BOOOOOOOOOOM")
                 self.shoot(self.shoot_rot)
                 self.shoot_counter = 0
             self.shoot_counter += 1
 
-        if self.rect.centerx - 100 > self.lvl.player.rect.centerx > self.rect.centerx + 100:
+        if self.rect.centerx - 100 < self.lvl.player.rect.centerx < self.rect.centerx + 100:
+            print("detected player")
             self.shooting = True
-            if self.lvl.player.rect.y > self.rect.y:
+            if self.lvl.player.rect.y < self.rect.y:
+                print("UP")
                 # Shoot UP
                 self.shoot_rot = 0
                 self.dir = "u"
             else:
+                print("DOWN")
                 # Shoot DOWN
                 self.shoot_rot = 180
                 self.dir = "d"
             self.stopped = True
-        elif self.rect.centery - 100 > self.lvl.player.rect.centery > self.rect.centery + 100:
+        elif self.rect.centery - 100 < self.lvl.player.rect.centery < self.rect.centery + 100:
+            print("detected player")
             self.shooting = True
             if self.lvl.player.rect.x > self.rect.x:
+                print("RIGHT")
                 # Shoot RIGHT
                 self.shoot_rot = 270
                 self.dir = "r"
             else:
+                print("LEFT")
                 # Shoot LEFT
                 self.shoot_rot = 90
                 self.dir = "l"
             self.stopped = True
         else:
+            print("nope")
             self.shooting = False
 
         if self.stopped:
@@ -622,10 +630,10 @@ class Soldier(pygame.sprite.Sprite):
         pass
 
     def on_player_touch(self, player):
-        print("baaaa")
+        print()
 
     def shoot(self, rot):
-        self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, 0, self.lvl, self.UEID))
+        self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, random.randint(self.shoot_rot-5, self.shoot_rot+5), self.lvl, self.UEID))
 
 
 class Wall(Block):
@@ -718,7 +726,7 @@ class Turret(Block):
             self.rot = 270-math.degrees(math.atan2(*offset))
             self.image = pygame.transform.rotate(self.original_image, self.rot)
             self.rect = self.image.get_rect(center=self.rect.center)
-            if self.counter != 1:
+            if self.counter != 400:
                 self.counter += 1
             else:
                 self.counter = 0
