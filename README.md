@@ -24,3 +24,7 @@ If you have multiple versions of Python installed, run the following on Linux/OS
 `> C:\Python34\python main.py`
 
 Replace `C:\Python34\` with your Python 3 install directory
+
+# Credits
+* Game by: [pta2002](http://ludumdare.com/compo/author/pta2002)
+* Graphics by: [crumpeted](http://ludumdare.com/compo/author/crumpeted)
