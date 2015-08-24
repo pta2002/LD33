@@ -364,6 +364,15 @@ class Player(pygame.sprite.Sprite):
                     self.shoot(270)
                 self.shoot_counter = 0
 
+        if self.rect.x > 800:
+            self.rect.x = 0
+        elif self.rect.x < 0:
+            self.rect.x = 800
+        elif self.rect.y > 600:
+            self.rect.y = 0
+        elif self.rect.y < 0:
+            self.rect.y = 600
+
         if self.counter == 1:
             self.counter = 0
             if self.anim_frame != self.max_anim_frame-1:
@@ -883,8 +892,13 @@ class Exit(Block):
                 powerup.kill()
             for bullet in player.lvl.bullets:
                 bullet.kill()
+
             if player.lvl.num == 1:
                 player.lvl = Lvl2(player)
+            elif player.lvl.num == 2:
+                player.lvl = Lvl3(player)
+            player.rect.x = player.lvl.start_pos[0]
+            player.rect.y = player.lvl.start_pos[1]
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -1119,6 +1133,7 @@ class Lvl2(Level):
         super().__init__(player)
 
         self.start_pos = (800-64, 600-64)
+        self.required_score = 250
 
         self.num = 2
         level = [
@@ -1126,7 +1141,7 @@ class Lvl2(Level):
             "#                       #",
             "#    S       S          #",
             "#                       #",
-            "#         ###########   #",
+            "#         ######D####   #",
             "#                   #   #",
             "#    S        T     #   #",
             "#             T     #   #",
@@ -1138,10 +1153,70 @@ class Lvl2(Level):
             "#                   #   #",
             "#    S              #   #",
             "#                   #   #",
-            "#####       H       #   #",
-            "# P #               #   #",
+            "########### H       #   #",
+            "# P #E   L          #   #",
             "#########################",
         ]
 
         self.blocks = self.convert(level)
         self.player = player
+
+
+class Lvl3(Level):
+    def __init__(self, player):
+        super().__init__(player)
+
+        self.start_pos = (400, 300)
+        self.num = 3
+        self.required_score = 400
+
+        level = [
+            "#########################",
+            "#S          #          S#",
+            "# ###  #### # ####  ### #",
+            "# ###  #### # ####  ### #",
+            "#                       #",
+            "# ###  #  ##D##  #  ### #",
+            "#S     #    #    #     S#",
+            "###### ###     ###  #####",
+            "###### #   # #   #  #####",
+            "                         ",
+            "###### # # # # # #  #####",
+            "###### # #     # #  #####",
+            "#      # # ### # #      #",
+            "#           #           #",
+            "# #DD# #### # #### #DD# #",
+            "#    #  E       E  #    #",
+            "##   # ##### ##### #    #",
+            "#H                     L#",
+            "#########################",
+        ]
+
+        self.blocks = self.convert(level)
+        self.player = player
+
+class Lvl4(Level):
+    def __init__(self, player):
+        super().__init__(player)
+
+        level = [
+            "#########################",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#########################",
+        ]

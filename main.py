@@ -59,6 +59,7 @@ while not done:
                 player.change_x = 0
                 player.change_y = 0
                 player.score = 0
+                player.has_gun = False
         display.blit(dead_image, (0, 0))
         pygame.display.update()
 
@@ -118,6 +119,12 @@ while not done:
         else constants.RED)
     textpos = text.get_rect()
     textpos.x = 550
+    textpos.y = 10
+    display.blit(text, textpos)
+
+    text = font.render("HEALTH: " + str(player.health), 1, constants.GREEN if player.health > 10 else constants.RED)
+    textpos = text.get_rect()
+    textpos.x = 300
     textpos.y = 10
     display.blit(text, textpos)
 
