@@ -186,15 +186,13 @@
         <array>
             <filename>tile_exit.png</filename>
             <filename>tile_labfloor.png</filename>
-            <filename>turret_base.png</filename>
             <filename>turret_top.png</filename>
             <filename>zz_bullet.png</filename>
-            <filename>zz_explosion.png</filename>
-            <filename>zz_fire.png</filename>
             <filename>zz_nozelflash.png</filename>
             <filename>zzz_healing.png</filename>
             <filename>zzz_heart.png</filename>
             <filename>zzzzgun.png</filename>
+            <filename>zzzzzzzzzzzzzzdoor.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

@@ -205,8 +205,8 @@ class Player(pygame.sprite.Sprite):
         self.playing_anim = self.idle_d
         self.image = self.playing_anim[0]
         self.rect = self.image.get_rect()
-        self.rect.x = 50
-        self.rect.y = 50
+        self.rect.x = 32
+        self.rect.y = 32
         self.dead = False
         self.counter = 0
         self.attack_counter = 0
@@ -407,14 +407,6 @@ class Human(pygame.sprite.Sprite):
     spritesheets_back = ["sprites/scientist_back.png", "sprites/person_back.png"]
     spritesheets_side = ["sprites/scientist_side.png", "sprites/person_side.png"]
 
-    idle_u = []
-    idle_d = []
-    idle_l = []
-    idle_r = []
-    walking_u = []
-    walking_d = []
-    walking_l = []
-    walking_r = []
     name = "human"
 
     # Pick a random direction
@@ -433,8 +425,17 @@ class Human(pygame.sprite.Sprite):
     def __init__(self, x, y, lvl):
         super().__init__()
         self.UEID = gen_ueid()
+
+        self.idle_u = []
+        self.idle_d = []
+        self.idle_l = []
+        self.idle_r = []
+        self.walking_u = []
+        self.walking_d = []
+        self.walking_l = []
+        self.walking_r = []
+
         spritesheet_chosen = random.randint(0, len(self.spritesheets_front)-1)
-        print(spritesheet_chosen)
         # Load sprites
         print("Loading sprites...")
         spritesheet = SpriteSheet(self.spritesheets_back[spritesheet_chosen],
@@ -464,7 +465,7 @@ class Human(pygame.sprite.Sprite):
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_l.append(image)
             self.walking_r.append(pygame.transform.flip(image, True, False))
-            self.max_anim_frame+=1
+            self.max_anim_frame += 1
 
         # Grab the stuff and things and stuff (and things)
         if self.dir == "u":
@@ -812,6 +813,7 @@ class Soldier(pygame.sprite.Sprite):
     def on_player_touch(self, player):
         pass
 
+
 class Wall(Block):
     def __init__(self, x, y):
         super().__init__(x, y)
@@ -820,6 +822,31 @@ class Wall(Block):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
+
+class Spawner(Block):
+    def __init__(self, x, y, lvl):
+        super().__init__(x, y)
+
+        spritesheet = SpriteSheet("spritesheet.png")
+        self.image = spritesheet.get_image(128, 0, 32, 32)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.timer = 0
+        self.lvl = lvl
+
+    def update(self):
+        if self.timer == 200:
+            if random.randint(0, 10) == 3:
+                human = Soldier(self.rect.x, self.rect.y - 40, self.lvl)
+            else:
+                human = Human(self.rect.x, self.rect.y - 40, self.lvl)
+            self.lvl.entities.add(human)
+            self.lvl.humans.add(human)
+            self.timer = 0
+        self.timer += 1
+        print(self.timer)
 
 
 class Exit(Block):
@@ -833,14 +860,15 @@ class Exit(Block):
         self.noclip = True
 
     def on_player_touch(self, player):
-        if player.lvl.num == 1:
-            player.lvl = Lvl2(player)
-        for human in player.lvl.humans:
-            human.kill()
-        for powerup in player.lvl.powerups:
-            powerup.kill()
-        for bullet in player.lvl.bullets:
-            bullet.kill()
+        if player.score >= player.lvl.required_score:
+            if player.lvl.num == 1:
+                player.lvl = Lvl2(player)
+            for human in player.lvl.humans:
+                human.kill()
+            for powerup in player.lvl.powerups:
+                powerup.kill()
+            for bullet in player.lvl.bullets:
+                bullet.kill()
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -853,7 +881,7 @@ class Bullet(pygame.sprite.Sprite):
         self.frames_lived = 0
 
         self.ori_angle = angle
-        self.original_image = self.spritesheet.get_image(176, 16, 16, 16)
+        self.original_image = self.spritesheet.get_image(160, 16, 16, 16)
         self.original_rect = self.original_image.get_rect()
         self.angle = -math.radians(angle-270)
         self.image = pygame.transform.rotate(self.original_image, angle)
@@ -880,7 +908,7 @@ class Turret(Block):
     spritesheet = SpriteSheet("spritesheet.png")
     rot = 0
     counter = 0
-    barrel = spritesheet.get_image(128, 0, 32, 32)
+    barrel = spritesheet.get_image(96, 0, 32, 32)
     disabled = False
     name = "turret"
 
@@ -902,7 +930,7 @@ class Turret(Block):
             self.rot = 270-math.degrees(math.atan2(*offset))
             self.image = pygame.transform.rotate(self.original_image, self.rot)
             self.rect = self.image.get_rect(center=self.rect.center)
-            if self.counter != 400:
+            if self.counter != 100:
                 self.counter += 1
             else:
                 self.counter = 0
@@ -929,7 +957,7 @@ class HealingPot(PowerUp):
     def __init__(self, x, y):
         super().__init__(x, y)
 
-        self.image = self.spritesheet.get_image(192, 0, 16, 16)
+        self.image = self.spritesheet.get_image(172, 0, 16, 16)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -944,7 +972,7 @@ class Heart(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
 
-        self.image = self.spritesheet.get_image(192, 16, 16, 16)
+        self.image = self.spritesheet.get_image(176, 16, 16, 16)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -956,7 +984,7 @@ class Gun(PowerUp):
     def __init__(self, x, y):
         super().__init__(x, y)
 
-        self.image = self.spritesheet.get_image(208, 0, 16, 16)
+        self.image = self.spritesheet.get_image(192, 0, 16, 16)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -971,7 +999,7 @@ class ExtraLive(PowerUp):
     def __init__(self, x, y):
         super().__init__(x, y)
 
-        self.image = self.spritesheet.get_image(192, 16, 16, 16)
+        self.image = self.spritesheet.get_image(176, 16, 16, 16)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -990,6 +1018,7 @@ class Level(object):
     turrets = pygame.sprite.Group()
     powerups = pygame.sprite.Group()
     start_pos = (50, 50)
+    required_score = 0
     humans = pygame.sprite.Group()
 
     def __init__(self, player):
@@ -1027,6 +1056,12 @@ class Level(object):
                     per = Soldier(x*32, y*32, self)
                     self.humans.add(per)
                     self.entities.add(per)
+                elif level[y][x] == "D":
+                    block = Spawner(x*32, y*32, self)
+                    blocks.add(block)
+                elif level[y][x] == "G":
+                    p = Gun(x*32, y*32)
+                    self.powerups.add(p)
         return blocks
 
 
@@ -1036,28 +1071,29 @@ class Lvl1(Level):
         super().__init__(player)
 
         self.num = 1
+        self.required_score = 100
         # Level. 25x19
 
         level = [
             "#########################",
-            "#                       #",
-            "#                       #",
-            "#            P          #",
-            "#            P       S  #",
-            "#            P          #",
-            "#            P   L      #",
-            "#            P          #",
-            "#                       #",
-            "#           T           #",
+            "# #     #    #          #",
+            "# #                     #",
+            "# #####D#D####          #",
             "#                       #",
             "#                       #",
             "#                       #",
-            "#               H       #",
             "#                       #",
-            "#           P           #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
+            "#                       #",
             "#                       #",
             "#                     E #",
-            "#########################",
+            "###########D#############",
         ]
         self.blocks = self.convert(level)
         self.player = player

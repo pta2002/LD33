@@ -114,7 +114,8 @@ while not done:
     player.lvl.humans.draw(display)
     all_sprites.draw(display)
 
-    text = font.render("SCORE: " + str(player.score), 1, constants.GREEN if player.score > 0 else constants.GREY)
+    text = font.render("SCORE: " + str(player.score), 1, constants.GREEN if player.score >= player.lvl.required_score \
+        else constants.RED)
     textpos = text.get_rect()
     textpos.x = 550
     textpos.y = 10
