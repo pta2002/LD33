@@ -62,6 +62,8 @@ class Player(pygame.sprite.Sprite):
     change_x = 0
     change_y = 0
 
+    has_gun = False
+
     counter = 0
 
     name = "player"
@@ -76,10 +78,20 @@ class Player(pygame.sprite.Sprite):
     attack_u = []
     attack_d = []
 
-    shoot_r = []
-    shoot_l = []
-    shoot_d = []
-    shoot_u = []
+    gun_r = []
+    gun_d = []
+    gun_l = []
+    gun_r = []
+
+    idle_u = []
+    idle_d = []
+    idle_r = []
+    idle_l = []
+
+    idle_g_u = []
+    idle_g_d = []
+    idle_g_l = []
+    idle_g_r = []
 
     direction = "d"
 
@@ -88,8 +100,13 @@ class Player(pygame.sprite.Sprite):
     spritesheet = SpriteSheet("player.png")
 
     attacking = False
+    shooting = False
     health = 20
     lives = 3
+
+    max_anim_frame = 0
+    playing_anim = None
+    anim_frame = 0
 
     score = 0
 
@@ -97,57 +114,54 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.UEID = gen_ueid()
 
-        # TODO: Make walking sprites
-        image = self.spritesheet.get_image(0, 64, 32, 32)
-        self.walking_r.append(image)
+        spritesheet = SpriteSheet("sprites/monster_back.png")
+        image = spritesheet.get_image(288, 0, 32, 32)
+        self.idle_u.append(image)
+        spritesheet = SpriteSheet("sprites/monster_front.png")
+        image = spritesheet.get_image(288, 0, 32, 32)
+        self.idle_d.append(image)
+        spritesheet = SpriteSheet("sprites/monster_left.png")
+        image = spritesheet.get_image(288, 0, 32, 32)
+        self.idle_l.append(image)
+        spritesheet = SpriteSheet("sprites/monster_right.png")
+        image = spritesheet.get_image(288, 0, 32, 32)
+        self.idle_r.append(image)
+        for i in range(spritesheet.width // 32):
+            spritesheet = SpriteSheet("sprites/monster_back.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.walking_u.append(image)
+            spritesheet = SpriteSheet("sprites/monster_front.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.walking_d.append(image)
+            spritesheet = SpriteSheet("sprites/monster_left.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.walking_l.append(image)
+            spritesheet = SpriteSheet("sprites/monster_right.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.walking_r.append(image)
+            self.max_anim_frame += 1
 
-        image = self.spritesheet.get_image(64, 32, 32, 32)
-        self.walking_l.append(image)
-
-        image = self.spritesheet.get_image(32, 32, 32, 32)
-        self.walking_d.append(image)
-
-        image = self.spritesheet.get_image(32, 64, 32, 32)
-        self.walking_u.append(image)
-
-        image = self.spritesheet.get_image(64, 0, 32, 32)
-        self.attack_r.append(image)
-
-        image = self.spritesheet.get_image(32, 0, 32, 32)
-        self.attack_l.append(image)
-
-        image = self.spritesheet.get_image(0, 0, 32, 32)
-        self.attack_d.append(image)
-
-        image = self.spritesheet.get_image(0, 32, 32, 32)
-        self.attack_u.append(image)
-
-        self.spritesheet = SpriteSheet("spritesheet.png")
-
-        image = self.spritesheet.get_image(0, 224, 32, 32)
-        self.shoot_u.append(image)
-        self.shoot_d.append(pygame.transform.rotate(image, 180))
-        self.shoot_l.append(pygame.transform.rotate(image, 270))
-        self.shoot_r.append(pygame.transform.rotate(image, 90))
-
-        self.image = self.walking_d[0]
+        self.playing_anim = self.idle_d
+        self.image = self.playing_anim[0]
         self.rect = self.image.get_rect()
         self.rect.x = 50
         self.rect.y = 50
         self.dead = False
+        self.counter = 0
 
     def update(self):
 
         # TODO: Implement animation
         if not self.attacking:
-            if self.direction == "d":
-                self.image = self.walking_d[0]
-            elif self.direction == "u":
-                self.image = self.walking_u[0]
-            elif self.direction == "r":
-                self.image = self.walking_r[0]
-            elif self.direction == "l":
-                self.image = self.walking_l[0]
+            if self.change_x != 0 or self.change_y != 0:
+                if self.direction == "d":
+                    self.playing_anim = self.walking_d
+                elif self.direction == "u":
+                    self.playing_anim = self.walking_u
+                elif self.direction == "r":
+                    self.playing_anim = self.walking_r
+                elif self.direction == "l":
+                    self.playing_anim = self.walking_l
         else:
             if self.direction == "d":
                 self.image = self.attack_d[0]
@@ -212,8 +226,6 @@ class Player(pygame.sprite.Sprite):
             if self.counter == 30:
                 self.attacking = False
 
-        self.counter += 1
-
         if self.health <= 0:
             if self.lives != 0:
                 self.lives -= 1
@@ -221,6 +233,38 @@ class Player(pygame.sprite.Sprite):
                 self.rect.x, self.rect.y = self.lvl.start_pos
             else:
                 self.on_death()
+
+        if self.change_x != 0 or self.change_y != 0:
+            if self.direction == "d":
+                self.playing_anim = self.walking_d
+            elif self.direction == "u":
+                self.playing_anim = self.walking_u
+            elif self.direction == "l":
+                self.playing_anim = self.walking_l
+            elif self.direction == "r":
+                self.playing_anim = self.walking_r
+        else:
+            if self.direction == "d":
+                self.playing_anim = self.idle_d
+            elif self.direction == "u":
+                self.playing_anim = self.idle_u
+            elif self.direction == "l":
+                self.playing_anim = self.idle_l
+            elif self.direction == "r":
+                self.playing_anim = self.idle_r
+
+        if self.counter == 1:
+            self.counter = 0
+            if self.anim_frame != self.max_anim_frame-1:
+                self.anim_frame += 1
+            else:
+                self.anim_frame = 0
+        if self.change_x != 0 or self.change_y != 0:
+            self.image = self.playing_anim[self.anim_frame]
+        else:
+            self.image = self.playing_anim[0]
+        self.counter += 1
+        print(self.counter)
 
     def change_speed(self, x, y):
         self.change_x += x
@@ -235,6 +279,12 @@ class Player(pygame.sprite.Sprite):
                 self.direction = "r"
             else:
                 self.direction = "l"
+
+    def set_shooting(self):
+        self.shooting = True
+
+    def stop_shooting(self):
+        self.shooting = False
 
     def attack(self):
         self.attacking = True
@@ -573,7 +623,7 @@ class Soldier(pygame.sprite.Sprite):
                     self.rect.top = entity.rect.bottom
                     self.dir = "d"
 
-        if self.counter == 1:
+        if self.counter == 5:
             self.counter = 0
             if self.anim_frame != self.max_anim_frame-1:
                 self.anim_frame += 1
@@ -581,7 +631,6 @@ class Soldier(pygame.sprite.Sprite):
                 self.anim_frame = 0
 
         if self.shooting:
-            print(self.shoot_counter)
             if self.shoot_counter == 5:
                 self.shoot(self.shoot_rot)
                 self.shoot_counter = 0
@@ -775,6 +824,8 @@ class Gun(PowerUp):
         self.image = self.spritesheet.get_image(208, 0, 16, 16)
         self.rect = self.image.get_rect()
 
+    def on_pickup(self, player):
+        player.has_gun = True
 
 
 class ExtraLive(PowerUp):
