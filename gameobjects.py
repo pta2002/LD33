@@ -876,14 +876,14 @@ class Exit(Block):
 
     def on_player_touch(self, player):
         if player.score >= player.lvl.required_score:
-            if player.lvl.num == 1:
-                player.lvl = Lvl2(player)
             for human in player.lvl.humans:
                 human.kill()
             for powerup in player.lvl.powerups:
                 powerup.kill()
             for bullet in player.lvl.bullets:
                 bullet.kill()
+            if player.lvl.num == 1:
+                player.lvl = Lvl2(player)
 
 
 class Bullet(pygame.sprite.Sprite):
@@ -1138,7 +1138,7 @@ class Lvl2(Level):
             "#    S              #   #",
             "#                   #   #",
             "#####       H       #   #",
-            "# H #               #   #",
+            "# P #               #   #",
             "#########################",
         ]
 
