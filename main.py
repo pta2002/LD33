@@ -103,16 +103,14 @@ while not done:
 
         display.blit(win_image, (0, 0))
         display.blit(
-            player.victory_anim[player.victory_anim_count],
+            player.victory_anim[player.victory_frame],
             (
                 constants.SCREEN_SIZE[0] // 2 - 32,
                 constants.SCREEN_SIZE[1] // 4
             )
         )
-        player.victory_frame = min(
-            player.victory_frame + 1,
-            player.victory_anim_count - 1
-        )
+        player.victory_frame = (player.victory_frame + 1) % \
+            player.victory_anim_count
 
         pygame.display.update()
 

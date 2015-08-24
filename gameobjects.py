@@ -226,7 +226,8 @@ class Player(pygame.sprite.Sprite):
             for i in range(spritesheet.width // 64)
         ]
         self.victory_frame = 0
-        self.victory_anim_count = len(self.victory_anim)-1
+        self.victory_anim_count = len(self.victory_anim)
+        print('victory frames', self.victory_anim_count)
 
         spritesheet = get_sprites("sprites/failure.png", alpha=True)
         self.failure_anim = [
@@ -234,7 +235,7 @@ class Player(pygame.sprite.Sprite):
             for i in range(spritesheet.width // 64)
         ]
         self.failure_frame = 0
-        self.failure_frame_count = len(self.failure_anim)-1
+        self.failure_frame_count = len(self.failure_anim)
 
         self.playing_anim = self.idle_d
         self.image = self.playing_anim[0]
