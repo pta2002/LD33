@@ -213,7 +213,8 @@ class Player(pygame.sprite.Sprite):
                                       alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.attack_l.append(image)
-            spritesheet = get_sprites("sprites/player_thump_right.png")
+            spritesheet = get_sprites("sprites/player_thump_right.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.attack_r.append(image)
 
