@@ -81,7 +81,7 @@ class Player(pygame.sprite.Sprite):
     gun_r = []
     gun_d = []
     gun_l = []
-    gun_r = []
+    gun_u = []
 
     idle_u = []
     idle_d = []
@@ -141,6 +141,48 @@ class Player(pygame.sprite.Sprite):
             self.walking_r.append(image)
             self.max_anim_frame += 1
 
+        spritesheet = SpriteSheet("sprites/monster_back_gun.png")
+        image = spritesheet.get_image(288, 0, 32, 32)
+        self.idle_g_u.append(image)
+        spritesheet = SpriteSheet("sprites/monster_front_gun.png")
+        image = spritesheet.get_image(288, 0, 32, 32)
+        self.idle_g_d.append(image)
+        spritesheet = SpriteSheet("sprites/monster_left_gun.png")
+        image = spritesheet.get_image(288, 0, 32, 32)
+        self.idle_g_l.append(image)
+        spritesheet = SpriteSheet("sprites/monster_right_gun.png")
+        image = spritesheet.get_image(288, 0, 32, 32)
+        self.idle_g_r.append(image)
+
+        for i in range(spritesheet.width // 32):
+            spritesheet = SpriteSheet("sprites/monster_back_gun.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.gun_u.append(image)
+            spritesheet = SpriteSheet("sprites/monster_front_gun.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.gun_d.append(image)
+            spritesheet = SpriteSheet("sprites/monster_left_gun.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.gun_l.append(image)
+            spritesheet = SpriteSheet("sprites/monster_right_gun.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.gun_r.append(image)
+
+        spritesheet = SpriteSheet("sprites/player_thump_back.png")
+        for i in range(spritesheet.width // 32):
+            spritesheet = SpriteSheet("sprites/player_thump_back.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.attack_u.append(image)
+            spritesheet = SpriteSheet("sprites/player_thump_front.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.attack_d.append(image)
+            spritesheet = SpriteSheet("sprites/player_thump_left.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.attack_l.append(image)
+            spritesheet = SpriteSheet("sprites/player_thump_right.png")
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.attack_r.append(image)
+
         self.playing_anim = self.idle_d
         self.image = self.playing_anim[0]
         self.rect = self.image.get_rect()
@@ -148,32 +190,12 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = 50
         self.dead = False
         self.counter = 0
+        self.attack_counter = 0
 
     def update(self):
-
-        # TODO: Implement animation
-        if not self.attacking:
-            if self.change_x != 0 or self.change_y != 0:
-                if self.direction == "d":
-                    self.playing_anim = self.walking_d
-                elif self.direction == "u":
-                    self.playing_anim = self.walking_u
-                elif self.direction == "r":
-                    self.playing_anim = self.walking_r
-                elif self.direction == "l":
-                    self.playing_anim = self.walking_l
-        else:
-            if self.direction == "d":
-                self.image = self.attack_d[0]
-            elif self.direction == "u":
-                self.image = self.attack_u[0]
-            elif self.direction == "r":
-                self.image = self.attack_r[0]
-            else:
-                self.image = self.attack_l[0]
-
         # Movement
-        self.rect.x += self.change_x
+        if not self.attacking:
+            self.rect.x += self.change_x
 
         blocks_hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
         for block in blocks_hit:
@@ -195,7 +217,8 @@ class Player(pygame.sprite.Sprite):
                     self.rect.left = entity.rect.right
                 entity.on_player_touch(self)
 
-        self.rect.y += self.change_y
+        if not self.attacking:
+            self.rect.y += self.change_y
 
         blocks_hit = pygame.sprite.spritecollide(self, self.lvl.blocks, False)
         for block in blocks_hit:
@@ -223,8 +246,9 @@ class Player(pygame.sprite.Sprite):
             powerup.kill()
 
         if self.attacking:
-            if self.counter == 30:
+            if self.attack_counter == 32:
                 self.attacking = False
+                self.attack_counter = 0
 
         if self.health <= 0:
             if self.lives != 0:
@@ -234,24 +258,53 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.on_death()
 
-        if self.change_x != 0 or self.change_y != 0:
-            if self.direction == "d":
-                self.playing_anim = self.walking_d
-            elif self.direction == "u":
-                self.playing_anim = self.walking_u
-            elif self.direction == "l":
-                self.playing_anim = self.walking_l
-            elif self.direction == "r":
-                self.playing_anim = self.walking_r
+        if not self.has_gun:
+            if self.attacking:
+                if self.direction == "d":
+                    self.playing_anim = self.attack_d
+                elif self.direction == "u":
+                    self.playing_anim = self.attack_u
+                elif self.direction == "l":
+                    self.playing_anim = self.attack_l
+                elif self.direction == "r":
+                    self.playing_anim = self.attack_r
+            elif self.change_x != 0 or self.change_y != 0:
+                if self.direction == "d":
+                    self.playing_anim = self.walking_d
+                elif self.direction == "u":
+                    self.playing_anim = self.walking_u
+                elif self.direction == "l":
+                    self.playing_anim = self.walking_l
+                elif self.direction == "r":
+                    self.playing_anim = self.walking_r
+            else:
+                if self.direction == "d":
+                    self.playing_anim = self.idle_d
+                elif self.direction == "u":
+                    self.playing_anim = self.idle_u
+                elif self.direction == "l":
+                    self.playing_anim = self.idle_l
+                elif self.direction == "r":
+                    self.playing_anim = self.idle_r
         else:
-            if self.direction == "d":
-                self.playing_anim = self.idle_d
-            elif self.direction == "u":
-                self.playing_anim = self.idle_u
-            elif self.direction == "l":
-                self.playing_anim = self.idle_l
-            elif self.direction == "r":
-                self.playing_anim = self.idle_r
+            if self.change_x != 0 or self.change_y != 0:
+                if self.direction == "d":
+                    self.playing_anim = self.gun_d
+                elif self.direction == "u":
+                    self.playing_anim = self.gun_u
+                elif self.direction == "l":
+                    self.playing_anim = self.gun_l
+                elif self.direction == "r":
+                    self.playing_anim = self.gun_r
+            else:
+                if self.direction == "d":
+                    self.playing_anim = self.idle_g_d
+                elif self.direction == "u":
+                    self.playing_anim = self.idle_g_u
+                elif self.direction == "l":
+                    self.playing_anim = self.idle_g_l
+                elif self.direction == "r":
+                    self.playing_anim = self.idle_g_r
 
         if self.counter == 1:
             self.counter = 0
@@ -259,12 +312,13 @@ class Player(pygame.sprite.Sprite):
                 self.anim_frame += 1
             else:
                 self.anim_frame = 0
-        if self.change_x != 0 or self.change_y != 0:
+        if self.change_x != 0 or self.change_y != 0 or self.attacking:
             self.image = self.playing_anim[self.anim_frame]
         else:
             self.image = self.playing_anim[0]
         self.counter += 1
-        print(self.counter)
+        if self.attacking:
+            self.attack_counter += 1
 
     def change_speed(self, x, y):
         self.change_x += x
@@ -297,13 +351,16 @@ class Player(pygame.sprite.Sprite):
     def on_death(self):
         self.dead = True
 
+    def shoot(self, rot):
+        self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, random.randint(rot-5, self.rot+5), self.lvl, \
+                                    self.UEID))
+
 
 class Human(pygame.sprite.Sprite):
     # Pick a random spritesheet. TODO: Add more spritesheets
-    spritesheets_idle = ["h1_idle.png"]
-    spritesheets_move = ["h1_move.png"]
-
-    spritesheet_chosen = random.randint(0, len(spritesheets_idle)-1)
+    spritesheets_front = ["sprites/scientist_front.png", "sprites/person_front.png"]
+    spritesheets_back = ["sprites/scientist_back.png", "sprites/person_back.png"]
+    spritesheets_side = ["sprites/scientist_side.png", "sprites/person_side.png"]
 
     idle_u = []
     idle_d = []
@@ -331,25 +388,32 @@ class Human(pygame.sprite.Sprite):
     def __init__(self, x, y, lvl):
         super().__init__()
         self.UEID = gen_ueid()
+        spritesheet_chosen = random.randint(0, len(self.spritesheets_front)-1)
+        print(spritesheet_chosen)
         # Load sprites
         print("Loading sprites...")
-        spritesheet = SpriteSheet(self.spritesheets_idle[self.spritesheet_chosen])
+        spritesheet = SpriteSheet(self.spritesheets_back[spritesheet_chosen])
+        image = spritesheet.get_image(0, 0, 32, 32)
+        self.idle_u.append(image)
+        spritesheet = SpriteSheet(self.spritesheets_front[spritesheet_chosen])
+        image = spritesheet.get_image(0, 0, 32, 32)
+        self.idle_d.append(image)
+        spritesheet = SpriteSheet(self.spritesheets_side[spritesheet_chosen])
+        image = spritesheet.get_image(0, 0, 32, 32)
+        self.idle_l.append(image)
+        self.idle_r.append(pygame.transform.flip(image, True, False))
         for i in range(spritesheet.width // 32):
-            image = spritesheet.get_image(i*32, 0, 32, 32)
-            self.idle_u.append(image)
-            self.idle_d.append(pygame.transform.flip(image, False, True))
-            image = pygame.transform.rotate(image, 90)
-            self.idle_l.append(image)
-            self.idle_r.append(pygame.transform.flip(image, True, False))
-            self.max_anim_frame += 1
-        spritesheet = SpriteSheet(self.spritesheets_move[self.spritesheet_chosen])
-        for i in range(spritesheet.width // 32):
+            spritesheet = SpriteSheet(self.spritesheets_back[spritesheet_chosen])
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_u.append(image)
-            self.walking_d.append(pygame.transform.flip(image, False, True))
-            image = pygame.transform.rotate(image, 90)
+            spritesheet = SpriteSheet(self.spritesheets_front[spritesheet_chosen])
+            image = spritesheet.get_image(i*32, 0, 32, 32)
+            self.walking_d.append(image)
+            spritesheet = SpriteSheet(self.spritesheets_side[spritesheet_chosen])
+            image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_l.append(image)
             self.walking_r.append(pygame.transform.flip(image, True, False))
+            self.max_anim_frame+=1
 
         # Grab the stuff and things and stuff (and things)
         if self.dir == "u":
@@ -450,10 +514,13 @@ class Human(pygame.sprite.Sprite):
                     self.rect.top = entity.rect.bottom
                     self.dir = "d"
 
-        if self.counter == 30:
+        if self.counter == 1:
             self.counter = 0
-            if self.anim_frame != self.max_anim_frame-1:
-                self.anim_frame += 1
+            if not self.stopped:
+                if self.anim_frame != self.max_anim_frame-1:
+                    self.anim_frame += 1
+                else:
+                    self.anim_frame = 0
             else:
                 self.anim_frame = 0
         self.image = self.playing_anim[self.anim_frame]
@@ -905,11 +972,11 @@ class Lvl1(Level):
             "#########################",
             "#                       #",
             "#                       #",
-            "#            S          #",
-            "#                       #",
-            "#                       #",
-            "#                L      #",
-            "#                       #",
+            "#            P          #",
+            "#            P          #",
+            "#            P          #",
+            "#            P   L      #",
+            "#            P          #",
             "#                       #",
             "#           T           #",
             "#                       #",
