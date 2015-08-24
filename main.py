@@ -60,7 +60,20 @@ while not done:
                 player.change_y = 0
                 player.score = 0
                 player.has_gun = False
+
         display.blit(dead_image, (0, 0))
+        display.blit(
+            player.failure_anim[player.failure_frame],
+            (
+                constants.SCREEN_SIZE[0] // 2 - 32,
+                constants.SCREEN_SIZE[1] // 4
+            )
+        )
+        player.failure_frame = min(
+            player.failure_frame + 1,
+            player.failure_frame_count - 1
+        )
+
         pygame.display.update()
 
     for event in pygame.event.get():
