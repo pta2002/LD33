@@ -7,7 +7,7 @@ import string
 UEIDs = []
 
 
-def gen_UEID():
+def gen_ueid():
     chars = string.ascii_letters + string.digits
     result = ""
     for x in range(10):
@@ -17,7 +17,7 @@ def gen_UEID():
         print("GENERATED UEID:", result)
         return result
     else:
-        return gen_UEID()
+        return gen_ueid()
 
 
 class SpriteSheet(object):
@@ -95,7 +95,7 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self):
         super().__init__()
-        self.UEID = gen_UEID()
+        self.UEID = gen_ueid()
 
         # TODO: Make walking sprites
         image = self.spritesheet.get_image(0, 64, 32, 32)
@@ -280,7 +280,7 @@ class Human(pygame.sprite.Sprite):
 
     def __init__(self, x, y, lvl):
         super().__init__()
-        self.UEID = gen_UEID()
+        self.UEID = gen_ueid()
         # Load sprites
         print("Loading sprites...")
         spritesheet = SpriteSheet(self.spritesheets_idle[self.spritesheet_chosen])
@@ -454,7 +454,7 @@ class Soldier(pygame.sprite.Sprite):
 
     def __init__(self, x, y, lvl):
         super().__init__()
-        self.UEID = gen_UEID()
+        self.UEID = gen_ueid()
         # Load sprites
         spritesheet_u = SpriteSheet("sprites/military_back.png")
         spritesheet_d = SpriteSheet("sprites/military_front.png")
@@ -583,41 +583,33 @@ class Soldier(pygame.sprite.Sprite):
         if self.shooting:
             print(self.shoot_counter)
             if self.shoot_counter == 5:
-                print("BOOOOOOOOOOM")
                 self.shoot(self.shoot_rot)
                 self.shoot_counter = 0
             self.shoot_counter += 1
 
         if self.rect.centerx - 100 < self.lvl.player.rect.centerx < self.rect.centerx + 100:
-            print("detected player")
             self.shooting = True
             if self.lvl.player.rect.y < self.rect.y:
-                print("UP")
                 # Shoot UP
                 self.shoot_rot = 0
                 self.dir = "u"
             else:
-                print("DOWN")
                 # Shoot DOWN
                 self.shoot_rot = 180
                 self.dir = "d"
             self.stopped = True
         elif self.rect.centery - 100 < self.lvl.player.rect.centery < self.rect.centery + 100:
-            print("detected player")
             self.shooting = True
             if self.lvl.player.rect.x > self.rect.x:
-                print("RIGHT")
                 # Shoot RIGHT
                 self.shoot_rot = 270
                 self.dir = "r"
             else:
-                print("LEFT")
                 # Shoot LEFT
                 self.shoot_rot = 90
                 self.dir = "l"
             self.stopped = True
         else:
-            print("nope")
             self.shooting = False
 
         if self.stopped:
@@ -640,7 +632,7 @@ class Wall(Block):
     def __init__(self, x, y):
         super().__init__(x, y)
         spritesheet = SpriteSheet("spritesheet.png")
-        self.image = spritesheet.get_image(96, 0, 32, 32)
+        self.image = spritesheet.get_image(64, 0, 32, 32)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -650,7 +642,7 @@ class Exit(Block):
     def __init__(self, x, y):
         super().__init__(x, y)
         spritesheet = SpriteSheet("spritesheet.png")
-        self.image = spritesheet.get_image(32, 0, 64, 32)
+        self.image = spritesheet.get_image(0, 0, 64, 32)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -677,7 +669,7 @@ class Bullet(pygame.sprite.Sprite):
         self.frames_lived = 0
 
         self.ori_angle = angle
-        self.original_image = self.spritesheet.get_image(240, 0, 16, 16)
+        self.original_image = self.spritesheet.get_image(176, 16, 16, 16)
         self.original_rect = self.original_image.get_rect()
         self.angle = -math.radians(angle-270)
         self.image = pygame.transform.rotate(self.original_image, angle)
@@ -694,7 +686,7 @@ class Bullet(pygame.sprite.Sprite):
         self.rect.y += self.speed[1]
         self.rect.topleft = self.rect.x, self.rect.y
         if self.frames_lived == 5:
-            self.image = pygame.transform.rotate(self.spritesheet.get_image(192, 0, 16, 16), self.ori_angle)
+            self.image = pygame.transform.rotate(self.spritesheet.get_image(160, 0, 16, 16), self.ori_angle)
         for block in pygame.sprite.spritecollide(self, self.lvl.blocks, False):
             if block.name != "turret":
                 self.lvl.bullets.remove(self)
@@ -704,7 +696,7 @@ class Turret(Block):
     spritesheet = SpriteSheet("spritesheet.png")
     rot = 0
     counter = 0
-    barrel = spritesheet.get_image(160, 0, 32, 32)
+    barrel = spritesheet.get_image(128, 0, 32, 32)
     disabled = False
     name = "turret"
 
@@ -753,7 +745,7 @@ class HealingPot(PowerUp):
     def __init__(self, x, y):
         super().__init__(x, y)
 
-        self.image = self.spritesheet.get_image(256, 0, 16, 16)
+        self.image = self.spritesheet.get_image(192, 0, 16, 16)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -768,10 +760,21 @@ class Heart(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
 
-        self.image = self.spritesheet.get_image(272, 0, 16, 16)
+        self.image = self.spritesheet.get_image(192, 16, 16, 16)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
+
+class Gun(PowerUp):
+    spritesheet = SpriteSheet("spritesheet.png")
+
+    def __init__(self, x, y):
+        super().__init__(x, y)
+
+        self.image = self.spritesheet.get_image(208, 0, 16, 16)
+        self.rect = self.image.get_rect()
+
 
 
 class ExtraLive(PowerUp):
@@ -780,7 +783,7 @@ class ExtraLive(PowerUp):
     def __init__(self, x, y):
         super().__init__(x, y)
 
-        self.image = self.spritesheet.get_image(272, 0, 16, 16)
+        self.image = self.spritesheet.get_image(192, 16, 16, 16)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
