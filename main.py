@@ -22,8 +22,9 @@ all_sprites = pygame.sprite.Group(player)
 
 hearts = pygame.sprite.Group()
 
-while not done:
+font = pygame.font.Font("PressStart2P.ttf", 20)
 
+while not done:
     # Start screen
     while start_screen:
         for event in pygame.event.get():
@@ -57,6 +58,7 @@ while not done:
                 player.rect.y = player.lvl.start_pos[1]
                 player.change_x = 0
                 player.change_y = 0
+                player.score = 0
         display.blit(dead_image, (0, 0))
         pygame.display.update()
 
@@ -73,7 +75,10 @@ while not done:
             if event.key == pygame.K_d:
                 player.change_speed(5, 0)
             if event.key == pygame.K_SPACE:
-                player.attack()
+                if not player.has_gun:
+                    player.attack()
+                else:
+                    player.start_shooting()
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
@@ -84,6 +89,8 @@ while not done:
                 player.change_speed(5, 0)
             if event.key == pygame.K_d:
                 player.change_speed(-5, 0)
+            if event.key == pygame.K_SPACE and player.has_gun:
+                player.stop_shooting()
 
     for bullet in player.lvl.bullets:
         if bullet.rect.x > 800 or bullet.rect.x < 0 or bullet.rect.y > 600 or bullet.rect.y < 0:
@@ -106,6 +113,12 @@ while not done:
     player.lvl.humans.update()
     player.lvl.humans.draw(display)
     all_sprites.draw(display)
+
+    text = font.render("SCORE: " + str(player.score), 1, constants.GREEN if player.score > 0 else constants.GREY)
+    textpos = text.get_rect()
+    textpos.x = 550
+    textpos.y = 10
+    display.blit(text, textpos)
 
     for x in range(player.lives):
         heart = Heart(x*16+10, 10)

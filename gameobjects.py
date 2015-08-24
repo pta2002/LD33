@@ -191,6 +191,8 @@ class Player(pygame.sprite.Sprite):
         self.dead = False
         self.counter = 0
         self.attack_counter = 0
+        self.shoot_counter = 0
+        self.shooting_frequency = 4
 
     def update(self):
         # Movement
@@ -205,8 +207,6 @@ class Player(pygame.sprite.Sprite):
                 elif self.change_x < 0:
                     self.rect.left = block.rect.right
             block.on_player_touch(self)
-            if self.attacking:
-                block.on_destroy(self)
 
         entities_hit = pygame.sprite.spritecollide(self, self.lvl.entities, False)
         for entity in entities_hit:
@@ -239,6 +239,17 @@ class Player(pygame.sprite.Sprite):
                 elif self.change_y < 0:
                     self.rect.top = entity.rect.bottom
                 entity.on_player_touch(self)
+
+        if self.attacking:
+            for block in self.lvl.blocks:
+                if block.rect.centerx - 60 < self.rect.centerx < block.rect.centerx + 60 and \
+                   block.rect.centery - 60 < self.rect.centery < block.rect.centery + 60:
+                    block.on_destroy(self)
+            for entity in self.lvl.entities:
+                if entity.rect.centerx - 60 < self.rect.centerx < entity.rect.centerx + 60 and \
+                   entity.rect.centery - 60 < self.rect.centery < entity.rect.centery + 60:
+                    if entity.UEID != self.UEID:
+                        entity.on_attacked(self)
 
         powerups_hit = pygame.sprite.spritecollide(self, self.lvl.powerups, False)
         for powerup in powerups_hit:
@@ -306,6 +317,18 @@ class Player(pygame.sprite.Sprite):
                 elif self.direction == "r":
                     self.playing_anim = self.idle_g_r
 
+        if self.shooting:
+            if self.shoot_counter == self.shooting_frequency:
+                if self.direction == "u":
+                    self.shoot(0)
+                if self.direction == "d":
+                    self.shoot(180)
+                if self.direction == "l":
+                    self.shoot(90)
+                if self.direction == "r":
+                    self.shoot(270)
+                self.shoot_counter = 0
+
         if self.counter == 1:
             self.counter = 0
             if self.anim_frame != self.max_anim_frame-1:
@@ -319,6 +342,8 @@ class Player(pygame.sprite.Sprite):
         self.counter += 1
         if self.attacking:
             self.attack_counter += 1
+        if self.shooting:
+            self.shoot_counter += 1
 
     def change_speed(self, x, y):
         self.change_x += x
@@ -334,7 +359,7 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.direction = "l"
 
-    def set_shooting(self):
+    def start_shooting(self):
         self.shooting = True
 
     def stop_shooting(self):
@@ -342,7 +367,8 @@ class Player(pygame.sprite.Sprite):
 
     def attack(self):
         self.attacking = True
-        self.counter = 0
+        self.attack_counter = 0
+        self.anim_frame = 0
 
     def on_hit(self, projectile):
         if not self.health <= 0:
@@ -352,7 +378,7 @@ class Player(pygame.sprite.Sprite):
         self.dead = True
 
     def shoot(self, rot):
-        self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, random.randint(rot-5, self.rot+5), self.lvl, \
+        self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, random.randint(rot-5, rot+5), self.lvl, \
                                     self.UEID))
 
 
@@ -527,8 +553,13 @@ class Human(pygame.sprite.Sprite):
         self.counter += 1
 
     def on_hit(self, projectile):
-        self.rect.x += projectile.speed[0]
-        self.rect.y += projectile.speed[1]
+        self.kill()
+        if projectile.dont_affect == projectile.lvl.player.UEID:
+            projectile.lvl.player.score += 10
+
+    def on_attacked(self, player):
+        self.kill()
+        player.score += 10
 
     def on_player_touch(self, player):
         pass
@@ -698,7 +729,7 @@ class Soldier(pygame.sprite.Sprite):
                 self.anim_frame = 0
 
         if self.shooting:
-            if self.shoot_counter == 5:
+            if self.shoot_counter == 20:
                 self.shoot(self.shoot_rot)
                 self.shoot_counter = 0
             self.shoot_counter += 1
@@ -734,15 +765,27 @@ class Soldier(pygame.sprite.Sprite):
             self.image = self.playing_anim[self.anim_frame]
         self.counter += 1
 
+    def shoot(self, rot):
+        self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, random.randint(rot-5, rot+5), self.lvl, self.UEID))
+
     def on_hit(self, projectile):
-        pass
+        if projectile.dont_affect != self.UEID:
+            self.kill()
+        if projectile.dont_affect == self.lvl.player.UEID:
+            projectile.lvl.player.score += 20
+        gun = Gun(self.rect.centerx, self.rect.centery)
+        self.lvl.powerups.add(gun)
+        print(self.rect.center)
+        print([x.rect.center for x in self.lvl.powerups])
+
+    def on_attacked(self, player):
+        self.kill()
+        player.score += 20
+        gun = Gun(self.rect.centerx, self.rect.centery)
+        self.lvl.powerups.add(gun)
 
     def on_player_touch(self, player):
-        print()
-
-    def shoot(self, rot):
-        self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, random.randint(self.shoot_rot-5, self.shoot_rot+5), self.lvl, self.UEID))
-
+        pass
 
 class Wall(Block):
     def __init__(self, x, y):
@@ -890,6 +933,8 @@ class Gun(PowerUp):
 
         self.image = self.spritesheet.get_image(208, 0, 16, 16)
         self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
     def on_pickup(self, player):
         player.has_gun = True
@@ -973,7 +1018,7 @@ class Lvl1(Level):
             "#                       #",
             "#                       #",
             "#            P          #",
-            "#            P          #",
+            "#            P       S  #",
             "#            P          #",
             "#            P   L      #",
             "#            P          #",
