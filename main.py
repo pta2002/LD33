@@ -42,6 +42,12 @@ while not done:
                 done = True
                 player.dead = False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                for human in player.lvl.humans:
+                    human.kill()
+                for powerup in player.lvl.powerups:
+                    powerup.kill()
+                for bullet in player.lvl.bullets:
+                    bullet.kill()
                 start_screen = True
                 player.dead = False
                 player.lvl = Lvl1(player)

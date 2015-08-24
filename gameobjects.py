@@ -584,38 +584,48 @@ class Soldier(pygame.sprite.Sprite):
             print(self.shoot_counter)
             if self.shoot_counter == 5:
                 self.shoot(self.shoot_rot)
-                if self.shoot_rot == 90:
-                    self.dir = "r"
-                elif self.shoot_rot == 180:
-                    self.dir = "d"
-                elif self.shoot_rot == 270:
-                    self.dir = "l"
-                else:
-                    self.dir = "u"
                 self.shoot_counter = 0
+            self.shoot_counter += 1
+
+        if self.rect.centerx - 100 > self.lvl.player.rect.centerx > self.rect.centerx + 100:
+            self.shooting = True
+            if self.lvl.player.rect.y > self.rect.y:
+                # Shoot UP
+                self.shoot_rot = 0
+                self.dir = "u"
+            else:
+                # Shoot DOWN
+                self.shoot_rot = 180
+                self.dir = "d"
+            self.stopped = True
+        elif self.rect.centery - 100 > self.lvl.player.rect.centery > self.rect.centery + 100:
+            self.shooting = True
+            if self.lvl.player.rect.x > self.rect.x:
+                # Shoot RIGHT
+                self.shoot_rot = 270
+                self.dir = "r"
+            else:
+                # Shoot LEFT
+                self.shoot_rot = 90
+                self.dir = "l"
+            self.stopped = True
+        else:
+            self.shooting = False
 
         if self.stopped:
             self.image = self.playing_anim[self.mas_idle_anim_frame]
         else:
             self.image = self.playing_anim[self.anim_frame]
         self.counter += 1
-        if self.shooting: self.shoot_counter += 1
 
     def on_hit(self, projectile):
         pass
 
     def on_player_touch(self, player):
-        self.shooting = True
+        print("baaaa")
 
     def shoot(self, rot):
-        if self.dir == "u":
-            self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.top, 0, self.lvl))
-        elif self.dir == "l":
-            self.lvl.bullets.add(Bullet(self.rect.left, self.rect.centery, 90, self.lvl))
-        elif self.dir == "d":
-            self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.bottom, 180, self.lvl))
-        else:
-            self.lvl.bullets.add(Bullet(self.rect.right, self.rect.centery, 270, self.lvl))
+        self.lvl.bullets.add(Bullet(self.rect.centerx, self.rect.centery, 0, self.lvl, self.UEID))
 
 
 class Wall(Block):
@@ -641,13 +651,19 @@ class Exit(Block):
     def on_player_touch(self, player):
         if player.lvl.num == 1:
             player.lvl = Lvl2(player)
+        for human in player.lvl.humans:
+            human.kill()
+        for powerup in player.lvl.powerups:
+            powerup.kill()
+        for bullet in player.lvl.bullets:
+            bullet.kill()
 
 
 class Bullet(pygame.sprite.Sprite):
     spritesheet = SpriteSheet("spritesheet.png")
     hit_force = 5
 
-    def __init__(self, x, y, angle, lvl):
+    def __init__(self, x, y, angle, lvl, dont_affect="--------"):
         super().__init__()
 
         self.frames_lived = 0
@@ -662,6 +678,7 @@ class Bullet(pygame.sprite.Sprite):
         self.speed = (self.speed_mag * math.cos(self.angle),
                       self.speed_mag * math.sin(self.angle))
         self.lvl = lvl
+        self.dont_affect = dont_affect
 
     def update(self):
         self.frames_lived += 1
@@ -701,7 +718,7 @@ class Turret(Block):
             self.rot = 270-math.degrees(math.atan2(*offset))
             self.image = pygame.transform.rotate(self.original_image, self.rot)
             self.rect = self.image.get_rect(center=self.rect.center)
-            if self.counter != 100:
+            if self.counter != 1:
                 self.counter += 1
             else:
                 self.counter = 0
