@@ -23,15 +23,22 @@ def gen_ueid():
 class SpriteSheet(object):
     sprite_sheet = None
 
-    def __init__(self, file):
+    def __init__(self, file, alpha=False):
         self.sprite_sheet = pygame.image.load(file)
+        self.alpha = alpha
+        if alpha:
+            self.sprite_sheet.convert_alpha()
         self.width = self.sprite_sheet.get_rect().width
         self.height = self.sprite_sheet.get_rect().height
 
     def get_image(self, x, y, width, height):
-        image = pygame.Surface((width, height))
+        if self.alpha:
+            image = pygame.Surface((width, height), pygame.SRCALPHA)
+        else:
+            image = pygame.Surface((width, height))
         image.blit(self.sprite_sheet, (0, 0), (x, y, width, height))
-        image.set_colorkey(constants.BLACK)
+        if not self.alpha:
+            image.set_colorkey(constants.BLACK)
         return image
 
 
@@ -114,69 +121,81 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.UEID = gen_ueid()
 
-        spritesheet = SpriteSheet("sprites/monster_back.png")
+        spritesheet = SpriteSheet("sprites/monster_back.png", alpha=True)
         image = spritesheet.get_image(288, 0, 32, 32)
         self.idle_u.append(image)
-        spritesheet = SpriteSheet("sprites/monster_front.png")
+        spritesheet = SpriteSheet("sprites/monster_front.png", alpha=True)
         image = spritesheet.get_image(288, 0, 32, 32)
         self.idle_d.append(image)
-        spritesheet = SpriteSheet("sprites/monster_left.png")
+        spritesheet = SpriteSheet("sprites/monster_left.png", alpha=True)
         image = spritesheet.get_image(288, 0, 32, 32)
         self.idle_l.append(image)
-        spritesheet = SpriteSheet("sprites/monster_right.png")
+        spritesheet = SpriteSheet("sprites/monster_right.png", alpha=True)
         image = spritesheet.get_image(288, 0, 32, 32)
         self.idle_r.append(image)
         for i in range(spritesheet.width // 32):
-            spritesheet = SpriteSheet("sprites/monster_back.png")
+            spritesheet = SpriteSheet("sprites/monster_back.png", alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_u.append(image)
-            spritesheet = SpriteSheet("sprites/monster_front.png")
+            spritesheet = SpriteSheet("sprites/monster_front.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_d.append(image)
-            spritesheet = SpriteSheet("sprites/monster_left.png")
+            spritesheet = SpriteSheet("sprites/monster_left.png", alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_l.append(image)
-            spritesheet = SpriteSheet("sprites/monster_right.png")
+            spritesheet = SpriteSheet("sprites/monster_right.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_r.append(image)
             self.max_anim_frame += 1
 
-        spritesheet = SpriteSheet("sprites/monster_back_gun.png")
+        spritesheet = SpriteSheet("sprites/monster_back_gun.png", alpha=True)
         image = spritesheet.get_image(288, 0, 32, 32)
         self.idle_g_u.append(image)
-        spritesheet = SpriteSheet("sprites/monster_front_gun.png")
+        spritesheet = SpriteSheet("sprites/monster_front_gun.png",
+                                  alpha=True)
         image = spritesheet.get_image(288, 0, 32, 32)
         self.idle_g_d.append(image)
-        spritesheet = SpriteSheet("sprites/monster_left_gun.png")
+        spritesheet = SpriteSheet("sprites/monster_left_gun.png", alpha=True)
         image = spritesheet.get_image(288, 0, 32, 32)
         self.idle_g_l.append(image)
-        spritesheet = SpriteSheet("sprites/monster_right_gun.png")
+        spritesheet = SpriteSheet("sprites/monster_right_gun.png",
+                                  alpha=True)
         image = spritesheet.get_image(288, 0, 32, 32)
         self.idle_g_r.append(image)
 
         for i in range(spritesheet.width // 32):
-            spritesheet = SpriteSheet("sprites/monster_back_gun.png")
+            spritesheet = SpriteSheet("sprites/monster_back_gun.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.gun_u.append(image)
-            spritesheet = SpriteSheet("sprites/monster_front_gun.png")
+            spritesheet = SpriteSheet("sprites/monster_front_gun.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.gun_d.append(image)
-            spritesheet = SpriteSheet("sprites/monster_left_gun.png")
+            spritesheet = SpriteSheet("sprites/monster_left_gun.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.gun_l.append(image)
-            spritesheet = SpriteSheet("sprites/monster_right_gun.png")
+            spritesheet = SpriteSheet("sprites/monster_right_gun.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.gun_r.append(image)
 
-        spritesheet = SpriteSheet("sprites/player_thump_back.png")
+        spritesheet = SpriteSheet("sprites/player_thump_back.png",
+                                  alpha=True)
         for i in range(spritesheet.width // 32):
-            spritesheet = SpriteSheet("sprites/player_thump_back.png")
+            spritesheet = SpriteSheet("sprites/player_thump_back.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.attack_u.append(image)
-            spritesheet = SpriteSheet("sprites/player_thump_front.png")
+            spritesheet = SpriteSheet("sprites/player_thump_front.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.attack_d.append(image)
-            spritesheet = SpriteSheet("sprites/player_thump_left.png")
+            spritesheet = SpriteSheet("sprites/player_thump_left.png",
+                                      alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.attack_l.append(image)
             spritesheet = SpriteSheet("sprites/player_thump_right.png")
@@ -418,24 +437,30 @@ class Human(pygame.sprite.Sprite):
         print(spritesheet_chosen)
         # Load sprites
         print("Loading sprites...")
-        spritesheet = SpriteSheet(self.spritesheets_back[spritesheet_chosen])
+        spritesheet = SpriteSheet(self.spritesheets_back[spritesheet_chosen],
+                                  alpha=True)
         image = spritesheet.get_image(0, 0, 32, 32)
         self.idle_u.append(image)
-        spritesheet = SpriteSheet(self.spritesheets_front[spritesheet_chosen])
+        spritesheet = SpriteSheet(
+            self.spritesheets_front[spritesheet_chosen], alpha=True)
         image = spritesheet.get_image(0, 0, 32, 32)
         self.idle_d.append(image)
-        spritesheet = SpriteSheet(self.spritesheets_side[spritesheet_chosen])
+        spritesheet = SpriteSheet(
+            self.spritesheets_side[spritesheet_chosen], alpha=True)
         image = spritesheet.get_image(0, 0, 32, 32)
         self.idle_l.append(image)
         self.idle_r.append(pygame.transform.flip(image, True, False))
         for i in range(spritesheet.width // 32):
-            spritesheet = SpriteSheet(self.spritesheets_back[spritesheet_chosen])
+            spritesheet = SpriteSheet(
+                self.spritesheets_back[spritesheet_chosen], alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_u.append(image)
-            spritesheet = SpriteSheet(self.spritesheets_front[spritesheet_chosen])
+            spritesheet = SpriteSheet(
+                self.spritesheets_front[spritesheet_chosen], alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_d.append(image)
-            spritesheet = SpriteSheet(self.spritesheets_side[spritesheet_chosen])
+            spritesheet = SpriteSheet(
+                self.spritesheets_side[spritesheet_chosen], alpha=True)
             image = spritesheet.get_image(i*32, 0, 32, 32)
             self.walking_l.append(image)
             self.walking_r.append(pygame.transform.flip(image, True, False))
@@ -604,9 +629,9 @@ class Soldier(pygame.sprite.Sprite):
         super().__init__()
         self.UEID = gen_ueid()
         # Load sprites
-        spritesheet_u = SpriteSheet("sprites/military_back.png")
-        spritesheet_d = SpriteSheet("sprites/military_front.png")
-        spritesheet_r = SpriteSheet("sprites/military_side.png")
+        spritesheet_u = SpriteSheet("sprites/military_back.png", alpha=True)
+        spritesheet_d = SpriteSheet("sprites/military_front.png", alpha=True)
+        spritesheet_r = SpriteSheet("sprites/military_side.png", alpha=True)
         self.idle_u.append(spritesheet_u.get_image(0, 0, 32, 32))
         self.idle_d.append(spritesheet_d.get_image(0, 0, 32, 32))
         self.idle_r.append(spritesheet_r.get_image(0, 0, 32, 32))
