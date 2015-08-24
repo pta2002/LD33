@@ -231,7 +231,7 @@ class Player(pygame.sprite.Sprite):
         spritesheet = get_sprites("sprites/failure.png", alpha=True)
         self.failure_anim = [
             spritesheet.get_image(i * 64, 0, 64, 64)
-            for i in range(spritesheet.width // 32)
+            for i in range(spritesheet.width // 64)
         ]
         self.failure_frame = 0
         self.failure_frame_count = len(self.failure_anim)-1
