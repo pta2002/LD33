@@ -130,6 +130,8 @@ class Player(pygame.sprite.Sprite):
     playing_anim = None
     anim_frame = 0
 
+    win = True
+
     score = 0
 
     def __init__(self):
@@ -897,6 +899,10 @@ class Exit(Block):
                 player.lvl = Lvl2(player)
             elif player.lvl.num == 2:
                 player.lvl = Lvl3(player)
+            elif player.lvl.num == 3:
+                player.lvl = Lvl4(player)
+            elif player.lvl.num == 4:
+                player.win = True
             player.rect.x = player.lvl.start_pos[0]
             player.rect.y = player.lvl.start_pos[1]
 
@@ -1195,28 +1201,35 @@ class Lvl3(Level):
         self.blocks = self.convert(level)
         self.player = player
 
+
 class Lvl4(Level):
     def __init__(self, player):
         super().__init__(player)
+        self.num = 4
+        self.start_pos = (400, 300)
+        self.required_score = 600
 
         level = [
             "#########################",
+            "#S L     TT   TT     G S#",
+            "#P H ###         ### L P#",
+            "###### ###   ##D## ######",
+            "#                       #",
+            "#     #           #     #",
+            "#   E #           #    L#",
+            "###D###           ###D###",
+            "#T                    T #",
+            "#######           #######",
+            "#G   G#           #H   L#",
+            "#     #           #     #",
             "#                       #",
             "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#                       #",
-            "#########################",
+            "#     #           #     #",
+            "#     #           #     #",
+            "#     #           #     #",
+            "#TE  T#TTTT   TTTT#LE  T#",
+            "####D####################",
         ]
+
+        self.blocks = self.convert(level)
+        self.player = player
