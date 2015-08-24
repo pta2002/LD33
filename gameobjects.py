@@ -130,7 +130,7 @@ class Player(pygame.sprite.Sprite):
     playing_anim = None
     anim_frame = 0
 
-    win = True
+    win = False
 
     score = 0
 

@@ -12,6 +12,7 @@ done = False
 start_screen = True
 start_image = pygame.image.load("start.png")
 dead_image = pygame.image.load("death.png")
+win_image = pygame.image.load("win.png")
 bg = constants.random_colour()
 
 # Initialize variables (e.g. player)
@@ -72,6 +73,45 @@ while not done:
         player.failure_frame = min(
             player.failure_frame + 1,
             player.failure_frame_count - 1
+        )
+
+        pygame.display.update()
+
+    while player.win:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+                player.win = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                for human in player.lvl.humans:
+                    human.kill()
+                for powerup in player.lvl.powerups:
+                    powerup.kill()
+                for bullet in player.lvl.bullets:
+                    bullet.kill()
+                start_screen = True
+                player.dead = False
+                player.lvl = Lvl1(player)
+                player.health = 20
+                player.lives = 3
+                player.rect.x = player.lvl.start_pos[0]
+                player.rect.y = player.lvl.start_pos[1]
+                player.change_x = 0
+                player.change_y = 0
+                player.score = 0
+                player.has_gun = False
+
+        display.blit(win_image, (0, 0))
+        display.blit(
+            player.victory_anim[player.victory_anim_count],
+            (
+                constants.SCREEN_SIZE[0] // 2 - 32,
+                constants.SCREEN_SIZE[1] // 4
+            )
+        )
+        player.victory_frame = min(
+            player.victory_frame + 1,
+            player.victory_anim_count - 1
         )
 
         pygame.display.update()
